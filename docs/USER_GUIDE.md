@@ -45,6 +45,8 @@ Bir defter sayfasındayken tüm o sayfadaki satırları döküme almak için iş
 
 Ayarlar ekranında **Yedekleme** bölümünden veritabanını (.db) veya veriyi (JSON) dışa aktarıp paylaşabilirsiniz.
 
+**Hakkında:** Ayarlar ekranının en altında "Hakkında" bölümünde uygulama adı, sürüm ve geliştiren kişi bilgisi yer alır.
+
 **Hata kayıtları:** Uygulama, oluşan hataları cihaz hafızasında saklar. Bir sorun yaşadığınızda veya teknik destek istediğinizde:
 1. **Ayarlar** > **Hata kayıtları** bölümüne gidin.
 2. **Hata raporunu paylaş** butonuna dokunun.

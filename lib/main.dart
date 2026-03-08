@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'screens/dashboard_screen.dart';
 import 'services/error_log_service.dart';
+import 'services/settings_service.dart';
 
 void main() {
   runZonedGuarded(
@@ -25,8 +26,26 @@ void main() {
   );
 }
 
-class DijitalDefterApp extends StatelessWidget {
+class DijitalDefterApp extends StatefulWidget {
   const DijitalDefterApp({super.key});
+
+  @override
+  State<DijitalDefterApp> createState() => _DijitalDefterAppState();
+}
+
+class _DijitalDefterAppState extends State<DijitalDefterApp> {
+  ThemeMode _themeMode = ThemeMode.system;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTheme();
+  }
+
+  Future<void> _loadTheme() async {
+    final mode = await SettingsService.instance.getThemeMode();
+    if (mounted) setState(() => _themeMode = mode);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +53,9 @@ class DijitalDefterApp extends StatelessWidget {
       title: 'Dijital Defter',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const DashboardScreen(),
+      darkTheme: AppTheme.dark,
+      themeMode: _themeMode,
+      home: DashboardScreen(onThemeReload: () => _loadTheme()),
     );
   }
 }

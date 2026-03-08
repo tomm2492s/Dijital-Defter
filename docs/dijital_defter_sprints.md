@@ -97,6 +97,7 @@
 - [x] Uygulama logosu: assets/images/logo.png; ana ekran (Dashboard) AppBar’da başlık yanında gösterilir
 - [x] Uygulama ikonu (launcher): flutter_launcher_icons ile logo.png’den Android/iOS ikonları üretilir; komut: dart run flutter_launcher_icons
 - [x] runZonedGuarded zone uyumu: ensureInitialized ve runApp aynı zone içinde çağrılarak "Zone mismatch" hatası giderildi
+- [x] Hakkında bölümü: Ayarlar ekranında uygulama adı, sürüm ve geliştiren kişi (yapan kişi) bilgisi; AppInfo ile tek yerden yönetim
 
 # Sprint 9 - Test ve Android yayın hazırlığı
 

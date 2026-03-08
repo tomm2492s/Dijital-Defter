@@ -5,11 +5,14 @@ import '../services/database_service.dart';
 import '../services/error_log_service.dart';
 import '../services/settings_service.dart';
 import '../services/storage_service.dart';
+import '../utils/app_info.dart';
 
 /// Ayarlar ekranı: Kurum Adı, Birim, Sorumlu Kişi, Dönem.
 /// Kaydedilen değerler ileride PDF/DOCX rapor üst bilgisi olarak kullanılacak.
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({super.key, this.onThemeReload});
+
+  final VoidCallback? onThemeReload;
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -23,6 +26,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _errorLog = ErrorLogService.instance;
   bool _isBackingUp = false;
   bool _isSharingError = false;
+  ThemeMode _themeMode = ThemeMode.system;
 
   late TextEditingController _reportTitleController;
   late TextEditingController _institutionController;
@@ -50,7 +54,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _departmentController.text = data['department'] ?? '';
     _responsibleController.text = data['responsible_person'] ?? '';
     _periodController.text = data['period'] ?? '';
+    _themeMode = await _settings.getThemeMode();
     if (mounted) setState(() => _isLoading = false);
+  }
+
+  Future<void> _setThemeMode(ThemeMode mode) async {
+    await _settings.saveThemeMode(mode);
+    if (mounted) setState(() => _themeMode = mode);
+    widget.onThemeReload?.call();
   }
 
   @override
@@ -96,7 +107,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ayarlar'),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/images/logo.png',
+              height: 28,
+              width: 28,
+              fit: BoxFit.contain,
+              // ignore: unnecessary_underscores
+              errorBuilder: (_, __, ___) => Icon(
+                Icons.settings_rounded,
+                size: 28,
+                color: Theme.of(context).colorScheme.onPrimary,
+              ),
+            ),
+            const SizedBox(width: 10),
+            const Text('Ayarlar'),
+          ],
+        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -105,6 +133,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
+                  // Tema
+                  Text(
+                    'Tema',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SegmentedButton<ThemeMode>(
+                            segments: const [
+                              ButtonSegment<ThemeMode>(
+                                value: ThemeMode.light,
+                                icon: Icon(Icons.light_mode),
+                                label: Text('Aydınlık'),
+                              ),
+                              ButtonSegment<ThemeMode>(
+                                value: ThemeMode.dark,
+                                icon: Icon(Icons.dark_mode),
+                                label: Text('Karanlık'),
+                              ),
+                              ButtonSegment<ThemeMode>(
+                                value: ThemeMode.system,
+                                icon: Icon(Icons.brightness_auto),
+                                label: Text('Sistem'),
+                              ),
+                            ],
+                            selected: {_themeMode},
+                            onSelectionChanged: (Set<ThemeMode> selected) {
+                              final mode = selected.first;
+                              _setThemeMode(mode);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
                   // Bilgi kartı
                   Card(
                     color: Theme.of(context).colorScheme.primary.withAlpha(20),
@@ -283,6 +353,50 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 : () async => _shareErrorReport(),
                             icon: const Icon(Icons.bug_report),
                             label: const Text('Hata raporunu paylaş'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Hakkında
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Hakkında',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 12),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.info_outline_rounded,
+                                  size: 20, color: Theme.of(context).colorScheme.primary),
+                              const SizedBox(width: 8),
+                              Text(
+                                AppInfo.appName,
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Sürüm ${AppInfo.version}',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Geliştiren: ${AppInfo.developerName}',
+                            style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ],
                       ),

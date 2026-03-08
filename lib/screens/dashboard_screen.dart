@@ -8,7 +8,9 @@ import 'settings_screen.dart';
 
 /// Ana ekran: sayfa listesi. Her sayfa bir “defter yaprağı”; içinde satır satır kayıtlar var.
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  const DashboardScreen({super.key, this.onThemeReload});
+
+  final VoidCallback? onThemeReload;
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -214,7 +216,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: () => _push(SettingsScreen()),
+            onPressed: () => _push(SettingsScreen(onThemeReload: widget.onThemeReload)),
             tooltip: 'Ayarlar',
           ),
         ],

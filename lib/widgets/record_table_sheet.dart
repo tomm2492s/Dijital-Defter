@@ -42,7 +42,7 @@ class RecordTableSheet extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               child: Row(
                 children: [
-                  for (final c in cols) _headerCell(c.label, flex: c.flex),
+                  for (final c in cols) _headerCell(context, c.label, flex: c.flex),
                   const SizedBox(width: 32),
                 ],
               ),
@@ -54,8 +54,14 @@ class RecordTableSheet extends StatelessWidget {
                 separatorBuilder: (context, index) => const Divider(height: 1),
                 itemBuilder: (context, i) {
                   final r = records[i];
-                  final rowColor =
-                      r.status ? Colors.green.shade50 : Colors.red.shade50;
+                  final isDark = theme.brightness == Brightness.dark;
+                  final rowColor = isDark
+                      ? (r.status
+                          ? Colors.green.withAlpha(38)
+                          : Colors.red.withAlpha(38))
+                      : (r.status
+                          ? Colors.green.shade50
+                          : Colors.red.shade50);
                   final row = Material(
                     color: rowColor,
                     child: InkWell(
@@ -70,6 +76,7 @@ class RecordTableSheet extends StatelessWidget {
                           children: [
                             for (final c in cols)
                               _cell(
+                                context,
                                 c.getValue(r, i),
                                 flex: c.flex,
                                 done: c.isStatus && r.status,
@@ -108,28 +115,34 @@ class RecordTableSheet extends StatelessWidget {
     );
   }
 
-  Widget _headerCell(String text, {int flex = 1}) {
+  Widget _headerCell(BuildContext context, String text, {int flex = 1}) {
+    final theme = Theme.of(context);
     return Expanded(
       flex: flex,
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 12,
+          color: theme.colorScheme.onSurface,
         ),
         overflow: TextOverflow.ellipsis,
       ),
     );
   }
 
-  Widget _cell(String text, {int flex = 1, bool done = false}) {
+  Widget _cell(BuildContext context, String text, {int flex = 1, bool done = false}) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Expanded(
       flex: flex,
       child: Text(
         text,
         style: TextStyle(
           fontSize: 12,
-          color: done ? Colors.green.shade800 : null,
+          color: done
+              ? (isDark ? Colors.green.shade200 : Colors.green.shade800)
+              : null,
           fontWeight: done ? FontWeight.w500 : null,
         ),
         overflow: TextOverflow.ellipsis,

@@ -34,7 +34,9 @@ class MaintenanceRecordTile extends StatelessWidget {
         ),
         subtitle: Text(
           '$dateStr · ${record.technician}',
-          style: TextStyle(color: Colors.grey.shade700),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
         trailing: const Icon(Icons.chevron_right),
       ),

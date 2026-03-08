@@ -1,6 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Ayarlar servisi – SharedPreferences ile kurum bilgilerini saklar.
+/// Ayarlar servisi – SharedPreferences ile kurum bilgilerini ve tema tercihini saklar.
 /// Sprint 6'da PDF/DOCX rapor üst bilgisi olarak kullanılacak.
 class SettingsService {
   SettingsService._();
@@ -11,6 +12,7 @@ class SettingsService {
   static const String _keyDepartment = 'department';
   static const String _keyResponsible = 'responsible_person';
   static const String _keyPeriod = 'period';
+  static const String _keyThemeMode = 'theme_mode';
 
   /// Rapor başlığı varsayılanı (ayarlarda boş bırakılırsa kullanılır).
   static const String defaultReportTitle = 'ENVANTER BAKIM DEĞERİ';
@@ -71,5 +73,29 @@ class SettingsService {
   Future<String> getPeriod() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_keyPeriod) ?? '';
+  }
+
+  /// Tema tercihi: 'light', 'dark', 'system'. Varsayılan: system.
+  Future<ThemeMode> getThemeMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final s = prefs.getString(_keyThemeMode) ?? 'system';
+    switch (s) {
+      case 'light':
+        return ThemeMode.light;
+      case 'dark':
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.system;
+    }
+  }
+
+  Future<void> saveThemeMode(ThemeMode mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    final s = switch (mode) {
+      ThemeMode.light => 'light',
+      ThemeMode.dark => 'dark',
+      ThemeMode.system => 'system',
+    };
+    await prefs.setString(_keyThemeMode, s);
   }
 }
