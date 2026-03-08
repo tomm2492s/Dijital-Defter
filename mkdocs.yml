@@ -1,0 +1,55 @@
+site_name: Dijital Defter Dokümantasyon
+site_description: Fiziksel çevrimdışı envanter bakım defteri mobil uygulaması teknik ve ürün belgeleri.
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      toggle:
+        icon: material/brightness-7 
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - Ana Sayfa: index.md
+  - Sürüm Notları (Changelog): CHANGELOG.md
+  - Kullanım Kılavuzları:
+    - Kullanıcı Rehberi: docs/USER_GUIDE.md
+  - Ürün ve Gereksinim:
+    - PRD: docs/PRD.md
+    - SRS: docs/SRS.md
+    - Sprint Planı: docs/dijital_defter_sprints.md
+    - Backlog: docs/BACKLOG.md
+  - Teknik Dokümantasyon:
+    - TRD (Mimari): docs/TRD.md
+    - ADR (Kararlar): docs/ADR.md
+    - RFC: docs/RFC.md
+  - Kalite ve Standartlar:
+    - UI/UX Kılavuzu: docs/UI_UX_GUIDELINES.md
+    - Test Planı: docs/TEST_PLAN.md
+    - BRD: docs/BRD.md
+    - FRD: docs/FRD.md
+    - MRD: docs/MRD.md
