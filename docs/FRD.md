@@ -63,6 +63,7 @@ Uygulama "Hızlı Form" yapısını benimser; teknik personel sahada hızlı ver
 
 - **[FR-07]** Raporlar WhatsApp, E-posta veya Telegram ile paylaşılabilir
 - **[FR-08]** Veriler cihazın yerel hafızasında (Internal Storage) saklanır
+- **[FR-09] Veri Senkronizasyonu (Sync):** Kullanıcı veritabanındaki kayıtları bir dosya (.ddb veya .json) olarak dışa aktarabilir ve başka bir cihazdan gelen veri dosyasını içeri aktararak (Import & Merge) kendi listesine ekleyebilir.
 
 ---
 
@@ -72,12 +73,19 @@ Uygulama "Hızlı Form" yapısını benimser; teknik personel sahada hızlı ver
 - **Asansör No:** Kayıt eklerken boş bırakılamaz
 - **Sıra No:** Rapor çıktısında 1’den başlayarak ardışık verilir (ID’den bağımsız)
 
-### 3.2. Hata ve Kenar Durumları
+### 3.2. Hata ve Kenar Durumları / Hata Mesajı Matrisi
 
 - **Ağ yok:** Uygulama offline çalışır; paylaşım "Dosyaya kaydet" veya sonradan
-- **Depolama dolu:** "Yeterli depolama alanı yok" mesajı; PDF kaydetme iptal
-- **PDF oluşturma hatası:** Snackbar ile bilgi; gerekirse log
 - **Kayıt silme:** Onay dialog’u gösterilir
+
+**Hata Mesajları Matrisi (UI Snackbar/Dialog Metinleri):**
+| Durum | Kullanıcıya Gösterilecek Mesaj | Eylem |
+|-------|-------------------------------|-------|
+| Depolama Dolu | "Yeterli depolama alanı yok. Lütfen cihazınızda yer açın." | PDF oluşturma/Kaydetme iptal edilir |
+| PDF Hatası | "Rapor oluşturulurken bir hata meydana geldi." | İşlem iptal edilir, ErrorLog'a yazılır |
+| Zorunlu Alan Boş | "Lütfen zorunlu alanları (örn: Asansör No) doldurunuz." | Kayıt engellenir, hatalı alan kırmızı olur |
+| Dosya İçe Aktarma Hatası | "Veri dosyası geçersiz veya bozuk. Lütfen tekrar deneyin." | Merge işlemi iptal edilir |
+| Başarılı Merge | "Veriler başarıyla birleştirildi: X yeni kayıt eklendi." | Liste güncellenir |
 
 ### 3.3. Validasyon Kuralları
 

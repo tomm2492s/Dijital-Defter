@@ -96,6 +96,11 @@ Ana veri bu tabloda tutulacaktır.
 | technician       | TEXT      | NOT NULL                 |
 | status           | INTEGER   | 0 (Yapılmadı) veya 1 (Yapıldı) |
 
+### 3.4. Veritabanı Göç (Migration) Stratejisi
+- Yeni bir tablo veya kolon (örn. resim yolu veya imza verisi) eklendiğinde `sqflite` `onUpgrade` metodu tetiklenir.
+- Versiyon numarası artırılarak `ALTER TABLE maintenance_records ADD COLUMN new_column TEXT;` gibi DDL komutları çalıştırılır.
+- Mevcut veriler (kullanıcı kayıtları) bu işlem sırasında kaybolmaz. Veri bütünlüğünü sağlamak için transaction blokları kullanılır.
+
 ## 4. Teknik İşlevler (Technical Features)
 
 ### 4.1. PDF Render Motoru
@@ -125,6 +130,35 @@ Ana veri bu tabloda tutulacaktır.
 - Veritabanı dosyası `databases` klasöründe
 - PDF çıktıları geçici (Temporary) veya belgeler (Documents) klasöründe; paylaşım sonrası isteğe bağlı silinebilir
 - Hata logları `Documents/DijitalDefter/HataKayitlari/` altında; paylaşım için üretilen rapor dosyaları aynı klasörde
+
+### 4.5. State Management Akış Mekanizması
+
+Arayüz (UI) ve Veritabanı etkileşimi için state management (Örn: Provider) kullanılacaktır:
+
+```mermaid
+sequenceDiagram
+    participant U as Kullanıcı (UI)
+    participant B as State (BLoC/Provider)
+    participant D as DatabaseService
+    U->>B: Formu Doldur ve "Kaydet"e Bas
+    B->>B: Validasyon (Zorunlu Alanlar)
+    alt Validasyon Hatalı
+        B-->>U: Hata Mesajı (Snackbar)
+    else Validasyon Başarılı
+        B->>D: insertRecord(data)
+        D-->>B: Kayıt ID Döner
+        B->>U: Liste UI Güncellenir (notifyListeners)
+        U-->>U: Form Temizlenir veya Kapanır
+    end
+```
+
+### 4.6. Veri Senkronizasyonu (Sync / Merge) Teknik Altyapısı
+Çoklu kullanıcılı offline senkronizasyon için `.json` formatında Export desteklenecektir.
+- **Dışa Aktarma:** Seçilen sayfalar veya tüm DB, JSON array olarak string'e çevrilir ve fiziksel dosyaya yazılır.
+- **İçe Aktarma (Conflict Resolution):** Gelen JSON Parse edilir. `maintenance_records`'daki kayıtların çakışmaması için `(asansor_no + bakim_tarihi + malzeme_adi)` alanları unique hash olarak değerlendirilir. Aynı gün aynı asansörün aynı parçasına yapılmış kayıt varsa "Merge overwrite" yapılmaz (duplicate engellenir). Yoksa yeni kayıt olarak ID bağımsız veritabanına `INSERT` edilir.
+
+### 4.7. Güvenlik Detayları
+- **Backup Güvenliği:** Cihazdaki SQLite `.db` dosyası, uygulamanın kendi app-data dizinindedir (Root yetkisi olmadan dışarıdan erişilemez). Uygulama `AndroidManifest.xml` dosyasında `android:allowBackup="true"` yapılandırılırsa, Google Drive otomatik yedeğine dahil olur; güvenlik veya KVKK gereği istenmezse "false" yapılır.
 
 ## 5. Performans ve Güvenlik Parametreleri
 

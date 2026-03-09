@@ -19,12 +19,25 @@ Mevcut durumda fiziksel kağıtlar üzerinde tutulan "Envanter Bakım Defteri" k
 - **Hata payı:** Okunaksız el yazısı veya eksik veri girişinden kaynaklanan hataları minimize etmek
 - **Erişilebilirlik:** Geçmiş bir bakım kaydına saniyeler içinde ulaşabilmek
 - **Standartlaşma:** Tüm bakım raporlarının aynı profesyonel formatta (PDF/DOCX) üretilmesi
+- **Ekip İçi Veri Bütünlüğü:** Sahadaki birden fazla personelin girdiği verilerin merkezde veya kendi aralarında birleştirilebilir olması (Data Sync).
 
-## 3. Paydaşlar (Stakeholders)
+### 2.1. Yatırım Getirisi (ROI) ve Maliyet İstihbaratı
+Uygulamanın v1 sürümü yerel depolama ve ücretsiz kullanım hedeflenerek geliştirilmektedir. Bulut sunucu maliyetleri (AWS/Firebase) v1'de sıfırdır. Tek seferlik Google Play Store lisans maliyeti ($25) dışında sabit gider yoktur. Uygulamanın kullanımıyla, her teknisyenin günlük ortalama 1 saatlik raporlama süresi tasarruf edilecek; bu da haftalık minimum 5 adam/saat (kişi başı) iş gücü kazanımı sağlayacaktır.
 
+## 3. Paydaşlar (Stakeholders) ve RACI Matrisi
+
+**Paydaş Listesi:**
 - **Saha personeli:** Veri girişini yapan teknik personel
 - **Yöneticiler / denetmenler:** Çıktıları kontrol eden ve onaylayan makamlar
 - **BT geliştirme:** Uygulamanın teknik bakımından sorumlu (Serhan Şeftalioğlu)
+
+**RACI Matrisi:**
+| Görev / Süreç | Yapan (Responsible) | Onaylayan (Accountable) | Danışılan (Consulted) | Bilgilendirilen (Informed) |
+|---------------|---------------------|-------------------------|-----------------------|----------------------------|
+| Veri Girişi   | Saha Personeli      | Denetmen                | -                     | Yönetici                   |
+| Rapor Üretimi | Saha Personeli      | Denetmen                | -                     | Yönetici, Müşteri          |
+| Uyg. Geliştirme| BT Geliştirme       | Yönetici                | Saha Personeli        | Denetmen                   |
+| Veri Birleştirme| Denetmen/Yönetici  | Yönetici                | BT Geliştirme         | -                          |
 
 ## 4. Fonksiyonel Gereksinimler
 
@@ -46,6 +59,11 @@ Mevcut durumda fiziksel kağıtlar üzerinde tutulan "Envanter Bakım Defteri" k
 - **DOCX dışa aktar:** Düzenlenebilir Word formatında çıktı
 - **Asansör No filtresi:** Belirli bir asansöre ait bakımların dökümü alınabilmeli
 - **Sütun özelleştirme ve gizleme:** Kullanıcı, tablo sütun başlıklarını ayarlardan özelleştirebilmeli ve ihtiyaç duymadığı sütunları global olarak gizleyebilmelidir; bu gizleme tablo görünümlerine ve PDF/DOCX rapor çıktısına aynı şekilde yansır.
+
+### 4.3. Veri Paylaşımı ve Senkronizasyon (Data Exchange)
+
+- **Veritabanı İçe/Dışa Aktarım (Import/Export):** Kullanıcı veritabanını `.ddb` formatında dışa aktarıp diğer kullanıcılara gönderebilir.
+- **Veri Birleştirme (Merge):** Bir kullanıcıdan gelen veri dosyası, mevcut uygulamanın içindeki verilerle çakışmadan (unique ID veya timestamp kontrolü ile) birleştirilebilir (Offline Sync).
 
 ## 5. Fonksiyonel Olmayan Gereksinimler
 

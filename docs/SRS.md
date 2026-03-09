@@ -92,6 +92,7 @@ Teknik terminolojiye hakim, hızlı aksiyon alması gereken saha personeli hedef
 
 - Uygulama açılış süresi 2 saniyenin altında
 - 1000 kayıtlık listenin PDF’e dönüşümü 5 saniyeyi geçmemeli
+- **Performans Test Kriteri:** Uygulama açılış hızı Android Studio Profiler ile "Release Mode" da ölçümlenir. FPS listelemelerde 60 FPS'in altına düşmemelidir.
 
 ### 5.2. Güvenilirlik ve Güvenlik
 
@@ -107,6 +108,18 @@ Teknik terminolojiye hakim, hızlı aksiyon alması gereken saha personeli hedef
 - **Kayıt ekleme:** Teknisyen formu açar, doldurur, kaydeder; sistem listeye ekler
 - **Rapor oluşturma:** Tarih aralığı/filtre seçilir, "Rapor Al"a basılır; PDF/DOCX oluşur ve paylaşım açılır
 - **Filtreleme:** Asansör No veya Malzeme Adı yazılır; liste anında filtrelenir
+- **Veri Senkronizasyonu:** Bir cihazdan "Defteri Dışa Aktar" denilerek `.ddb` dosyası paylaşılır. Diğer kullanıcı "İçe Aktar" diyerek bu dosyayı seçer ve kayıtlar listesinde otomatik olarak birleştirilir.
+
+### 5.4.1. Use Case Diyagramı (UML)
+
+```mermaid
+flowchart LR
+    T(Teknisyen) --> A(Kayıt Ekle/Düzenle)
+    T --> B(Defteri PDF Olarak Paylaş)
+    T --> C(Veri Yedeğini Gönder)
+    Y(Yönetici) --> D(Raporları İncele)
+    Y --> E(Gelen Yedekleri İçe Aktar/Merge)
+```
 
 ### 5.5. Hata Davranışı
 

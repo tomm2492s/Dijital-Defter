@@ -59,6 +59,10 @@ CREATE TABLE maintenance_records (
 - **Resim ekleme:** Bakım anına dair fotoğraf rapora eklenecek mi? (PDF boyutunu artırır)
 - **İmza:** Dijital imza alanı (ekrana çizim) eklenmeli mi?
 - **Bulut senkronizasyonu:** v1 %100 offline mı kalmalı, yoksa opsiyonel Google Drive yedeklemesi mi?
+- **P2P/Offline Senkronizasyon:** Ekipler arası veri senkronizasyonu için JSON import/export yöntemi mi, yoksa Bluetooth/Wi-Fi Direct p2p aktarım mı kullanılmalı?
+
+## 5.1. Teklif Yaşam Döngüsü (Lifecycle)
+Bu doküman 1 hafta boyunca "Draft" (Taslak) statüsünde kalacaktır. İlgili paydaşlardan (Product Owner, Geliştiriciler) itiraz gelmemesi durumunda 14.03.2026 tarihinde "Accepted" edilecek ve sprintlere dahil edilecektir.
 
 ## 6. Alternatifler Değerlendirildi
 
@@ -66,6 +70,14 @@ CREATE TABLE maintenance_records (
 - **React Native:** Benzer avantaj; ekosistem tercihi nedeniyle Flutter seçildi
 - **PWA:** Offline ve dosya erişimi sınırlı; native paylaşım/depolama için uygun değil
 - **Native (Kotlin/Swift):** En yüksek performans; maliyet ve süre nedeniyle v1’de tercih edilmedi
+
+**Teknoloji Karşılaştırma Matrisi (Pro/Con):**
+| Teknoloji | Artılar (Pros) | Eksiler (Cons) | Karar |
+|-----------|----------------|----------------|-------|
+| Flutter | Tek kod tabanı, hızlı UI, iyi PDF desteği | App size biraz büyük, Native entegrasyonlar plugin gerektirir | Seçildi |
+| React Native | Web JS ekosistemi, OTA (Over the air) update | Re-render performansı, native harici library stabilite sorunları | Elendi |
+| PWA | Kurulumsuz anında erişim | Local storage (SQLite) desteği zayıf, dosya paylaşım API'leri sinyali düşük | Elendi |
+| Native (Android) | Maksimum performans, boyut küçük | iOS için sıfırdan yazılması gerekecek (2x maliyet) | Elendi |
 
 ## 7. Tahmini Zaman Çizelgesi
 

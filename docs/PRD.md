@@ -25,6 +25,7 @@ Dijital Defter, teknik personelin saha operasyonlarında kullandığı fiziksel 
 | US-02 | Teknisyen  | "Durum" sütununu tek tıkla işaretlemek istiyorum | Zaman kazanmak, hata azaltmak      |
 | US-03 | Yönetici   | Bakım sonuçlarını profesyonel tablo olarak almak | Resmi kayıt ve denetimlere uygun  |
 | US-04 | Teknisyen  | İnternet yokken bile kayıt girmek istiyorum      | Bodrum/asansör boşluğunda çalışmak |
+| US-05 | Teknisyen / Yönetici | Başka bir teknisyenin verilerini uygulamama alıp kendi verilerimle birleştirmek istiyorum | Ekipler arası ortak rapor sunabilmek için |
 
 ## 4. Fonksiyonel Gereksinimler
 
@@ -72,6 +73,15 @@ Dijital Defter, teknik personelin saha operasyonlarında kullandığı fiziksel 
 - **Sayfa yönetimi:** Sayfalar adlandırılabilir, sürükleyerek sıralanabilir ve silinebilir; menü karta uzun basarak veya üç nokta ile açılır
 - **Tablo görünümü:** Sayfa bazlı sütun seçimi ve sırası kullanıcı tarafından düzenlenebilir; bu ayarlar veritabanında saklanır (uygulama kapatılıp açılsa da korunur)
 - **Rapor önizleme:** PDF tam ekranda; açılışta sayfa ortada ve ekrana sığacak şekilde, beyaz arka plan; parmakla zoom ve pan ile rahat inceleme
+- **Arayüz Tel Kafesleri (Wireframes):** Geliştirme aşamasında her ana ekran (Dashboard, Form, Rapor Önizleme) için düşük çözünürlüklü dijital tasarımlar (Figma) baz alınacaktır. Kaba taslak olarak:
+  - Ekran 1 (Dashboard): Üstte Arama çubuğu, ortada defter sayfası kartları, sağ altta Floating Action Button (Yeni Sayfa/Kayıt).
+  - Ekran 2 (Form): Yukarıdan aşağıya kaydırılabilir Material Text/Dropdown alanları, en altta tam genişlikte "Kaydet" butonu.
+
+### 5.1. Telemetri ve Analitik Planı (Gelecek Vizyonu)
+Mevcut v1 sürümünde %100 çevrimdışı ve anonim çalışılmaktadır. Ancak gelecekte ölçümleme (Firebase Analytics vb.) eklendiğinde aşağıdaki davranışlar (Kişisel veri içermeden) toplanacaktır:
+- `record_created`: Form kayıt başarı metrikleri
+- `pdf_exported` / `docx_exported`: En çok kullanılan çıktı türü
+- `data_merged`: Senkronizasyon (İçe/Dışa aktarım) kullanım sıklığı
 
 ### 5.1. Durum Akış Diyagramı (State & Flow Diagram)
 
