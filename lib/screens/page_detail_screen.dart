@@ -11,6 +11,7 @@ import '../services/database_service.dart';
 import '../services/error_log_service.dart';
 import '../services/page_view_service.dart';
 import '../services/report_service.dart';
+import '../services/notification_service.dart';
 import '../services/settings_service.dart';
 import '../services/storage_service.dart';
 import '../utils/table_columns.dart';
@@ -37,11 +38,16 @@ class _PageDetailScreenState extends State<PageDetailScreen> {
   final PageViewService _pageView = PageViewService.instance;
   List<String>? _columnIds;
   Future<List<MaintenanceRecord>>? _recordsFuture;
+  Map<String, String>? _columnLabels;
+  String? _statusTrueLabel;
+  String? _statusFalseLabel;
+  Set<String> _hiddenColumnIds = <String>{};
 
   @override
   void initState() {
     super.initState();
     _loadColumnIds();
+    _loadColumnAndStatusLabels();
     _refreshRecords();
   }
 
@@ -62,6 +68,20 @@ class _PageDetailScreenState extends State<PageDetailScreen> {
     final ids = await _pageView.getColumnIds(widget.page.id);
     if (!mounted) return;
     setState(() => _columnIds = List.from(ids));
+  }
+
+  Future<void> _loadColumnAndStatusLabels() async {
+    final labels = await _settings.getColumnLabels();
+    final statusTrue = await _settings.getStatusTrueLabel();
+    final statusFalse = await _settings.getStatusFalseLabel();
+    final hiddenIds = await _settings.getHiddenColumnIds();
+    if (!mounted) return;
+    setState(() {
+      _columnLabels = labels;
+      _statusTrueLabel = statusTrue;
+      _statusFalseLabel = statusFalse;
+      _hiddenColumnIds = hiddenIds.toSet();
+    });
   }
 
   Future<void> _openViewEdit() async {
@@ -112,8 +132,22 @@ class _PageDetailScreenState extends State<PageDetailScreen> {
     if (record.id == null) return;
     final messenger = ScaffoldMessenger.of(context);
     try {
+      // Önce veritabanından silme işlemini deneyelim.
       await _db.delete(record.id!);
       if (!mounted) return;
+
+      // Bildirim iptali başarısız olsa bile, kayıt zaten silinmiş olacak.
+      try {
+        await NotificationService.instance.cancelReminder(record.id!);
+      } catch (e, stackTrace) {
+        // Bildirim iptalinde hata olursa sessizce loglanır, kullanıcıya hata gösterilmez.
+        ErrorLogService.instance.logError(
+          e,
+          stackTrace,
+          context: 'Sayfa - kayıt silme (bildirim iptal)',
+        );
+      }
+
       _refreshRecords();
       messenger.showSnackBar(const SnackBar(content: Text('Kayıt silindi.')));
     } catch (e, stackTrace) {
@@ -133,9 +167,15 @@ class _PageDetailScreenState extends State<PageDetailScreen> {
     final msg = await _reportService.checkSettingsForReport();
     if (msg != null) return null;
     final headerInfo = await _settings.load();
+    final columnLabels = await _settings.getColumnLabels();
+    final statusTrue = await _settings.getStatusTrueLabel();
+    final statusFalse = await _settings.getStatusFalseLabel();
     return _reportService.buildPdf(
       records: records,
       headerInfo: headerInfo,
+      columnLabels: columnLabels,
+      statusTrueLabel: statusTrue,
+      statusFalseLabel: statusFalse,
       landscape: true,
     );
   }
@@ -187,7 +227,16 @@ class _PageDetailScreenState extends State<PageDetailScreen> {
     final msg = await _reportService.checkSettingsForReport();
     if (msg != null) return null;
     final headerInfo = await _settings.load();
-    final bytes = await _reportService.buildDocx(records: records, headerInfo: headerInfo);
+    final columnLabels = await _settings.getColumnLabels();
+    final statusTrue = await _settings.getStatusTrueLabel();
+    final statusFalse = await _settings.getStatusFalseLabel();
+    final bytes = await _reportService.buildDocx(
+      records: records,
+      headerInfo: headerInfo,
+      columnLabels: columnLabels,
+      statusTrueLabel: statusTrue,
+      statusFalseLabel: statusFalse,
+    );
     final name = 'sayfa_${widget.page.id}_${DateFormat('yyyyMMdd_Hm').format(DateTime.now())}.docx';
     if (forView) {
       final dir = await getTemporaryDirectory();
@@ -381,19 +430,41 @@ class _PageDetailScreenState extends State<PageDetailScreen> {
               ),
             );
           }
-          final ids = _columnIds ?? kDefaultColumnIds;
-          final columns = resolveColumns(ids);
+          final baseIds = _columnIds ?? kDefaultColumnIds;
+          final visibleIds = baseIds.where((id) => !_hiddenColumnIds.contains(id)).toList();
+          final effectiveIds = visibleIds.isEmpty ? baseIds : visibleIds;
+          final columns = resolveColumns(effectiveIds);
           return RefreshIndicator(
             onRefresh: () async {
               await _loadColumnIds();
+              await _loadColumnAndStatusLabels();
               setState(() {});
             },
             child: RecordTableSheet(
-              key: ValueKey<String>(ids.join(',')),
+              key: ValueKey<String>(effectiveIds.join(',')),
               records: list,
               onTapRow: _openForm,
               onDeleteRow: _onDeleteRecord,
               columns: columns,
+              columnLabels: _columnLabels,
+              statusTrueLabel: _statusTrueLabel,
+              statusFalseLabel: _statusFalseLabel,
+              onMoveUp: (record) async {
+                final index = list.indexWhere((r) => r.id == record.id);
+                if (index <= 0) return;
+                final prev = list[index - 1];
+                await _db.swapRecordSortOrder(record, prev);
+                if (!mounted) return;
+                _refreshRecords();
+              },
+              onMoveDown: (record) async {
+                final index = list.indexWhere((r) => r.id == record.id);
+                if (index < 0 || index >= list.length - 1) return;
+                final next = list[index + 1];
+                await _db.swapRecordSortOrder(record, next);
+                if (!mounted) return;
+                _refreshRecords();
+              },
             ),
           );
         },

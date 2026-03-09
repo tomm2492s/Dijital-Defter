@@ -34,11 +34,18 @@ Mevcut durumda fiziksel kağıtlar üzerinde tutulan "Envanter Bakım Defteri" k
 - **Durum kontrolü:** Her işlem için "Yapıldı (✅)" veya "Yapılmadı (❌)" switch/checkbox ile seçilebilmeli
 - **Listeleme:** Kayıtlar ana ekranda tarih sırasına göre listelenmeli
 
+### 4.1.1. Bakım Periyodu ve Hatırlatma (Uygulama Bazında, Gelecek Sürüm)
+
+- **Bakım periyodu takibi (global):** Kayıt formuna ek alan eklemeden, yalnızca uygulama ayarlarında tanımlanan global bir bakım periyodu (örneğin 3 ay veya 6 ay) üzerinden bakım tarihlerini takip etme.
+- **Sonraki bakım tarihine göre bilgilendirme:** Kullanıcının girdiği bakım tarihine göre sonraki bakım tarihinin (bakım_tarihi + periyot) uygulama tarafından hesaplanması ve bu tarih yaklaştığında veya geçtiğinde kullanıcıya uygulama içinde listeli bir uyarı gösterilmesi.
+- **Kullanıcı tarafından ayarlanabilir eşik:** Global periyot ve "X gün önce uyar" gibi eşiklerin Ayarlar ekranından tanımlanabilmesi; bu mekanizmanın sadece uygulama genelinde çalışması, tek tek kayıtlara ekstra alan eklenmemesi.
+
 ### 4.2. Raporlama ve Çıktı
 
 - **PDF dışa aktar:** Orijinal defter formatına sadık PDF
 - **DOCX dışa aktar:** Düzenlenebilir Word formatında çıktı
 - **Asansör No filtresi:** Belirli bir asansöre ait bakımların dökümü alınabilmeli
+- **Sütun özelleştirme ve gizleme:** Kullanıcı, tablo sütun başlıklarını ayarlardan özelleştirebilmeli ve ihtiyaç duymadığı sütunları global olarak gizleyebilmelidir; bu gizleme tablo görünümlerine ve PDF/DOCX rapor çıktısına aynı şekilde yansır.
 
 ## 5. Fonksiyonel Olmayan Gereksinimler
 

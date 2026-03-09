@@ -31,12 +31,12 @@
 
 - [x] Veri giriş ekranı (form) ve navigasyon
 - [x] Tüm dinamik alanlar (Demirbaş No, Asansör No, Malzeme Adı, Bulunduğu Birim, Bakım Tarihi, Yapılan İşlem, Bakım Yapan, Durum)
-- [ ] Asansör No için Dropdown/Autocomplete (kayıtlı numaralardan seçim veya manuel)
 - [x] Bakım Tarihi DatePicker (varsayılan bugün)
 - [x] Durum alanı Switch (Yapıldı / Yapılmadı)
 - [x] Zorunlu alan validasyonu ve hata mesajları (Snackbar)
 - [x] Kayıt ekleme ve listeye geri dönüş
 - [x] Listeden kayda dokununca düzenleme (güncelleme) akışı
+- [ ] Asansör No için Dropdown/Autocomplete (kayıtlı numaralardan seçim veya manuel)
 
 # Sprint 5 - Ayarlar ve rapor üst bilgileri
 
@@ -98,17 +98,9 @@
 - [x] Uygulama ikonu (launcher): flutter_launcher_icons ile logo.png’den Android/iOS ikonları üretilir; komut: dart run flutter_launcher_icons
 - [x] runZonedGuarded zone uyumu: ensureInitialized ve runApp aynı zone içinde çağrılarak "Zone mismatch" hatası giderildi
 - [x] Hakkında bölümü: Ayarlar ekranında uygulama adı, sürüm ve geliştiren kişi (yapan kişi) bilgisi; AppInfo ile tek yerden yönetim
+- [x] Takvim Türkçe yerelleştirme: flutter_localizations ile DatePicker ve tarih bileşenlerinin Türkçe (ay adları, hafta günleri vb.) gösterilmesi
 
-# Sprint 9 - Test ve Android yayın hazırlığı
-
-- [ ] DatabaseService ve CRUD için birim testler
-- [ ] PDF oluşturma mantığı için birim test (mock veri)
-- [ ] Kritik widget testleri (form, liste)
-- [ ] Manuel test senaryoları (kayıt ekleme, düzenleme, silme, filtre, PDF/DOCX, paylaşım)
-- [ ] Android release build ve imzalama
-- [ ] Google Play Store liste metni ve ekran görüntüleri hazırlığı
-
-# Sprint 10 - Dokümantasyon ve İyileştirmeler
+# Sprint 9 - Dokümantasyon ve İyileştirmeler
 
 - [x] README.md oluşturulması (Geliştirici rehberi)
 - [x] CHANGELOG.md oluşturulması (Sürüm geçmişi)
@@ -119,3 +111,28 @@
 - [x] TRD.md içerisine Mermaid ile ER Diyagramı eklenmesi
 - [x] PRD.md içerisine Mermaid ile Durum Akış Diyagramı eklenmesi
 - [x] MkDocs yapılandırmasının (mkdocs.yml) kurularak statik site üretimi entegrasyonu
+
+# Sprint 10 - Özelleştirilebilir sütun başlıkları ve durum metinleri
+
+- [x] Ayarlar ekranına tablo sütun başlıkları için alanlar eklendi (Demirbaş No, Asansör No, Malzeme Adı, Bulunduğu Birim, Tarih, Yapılan İşlem, Bakım Yapan, Durum).
+- [x] Durum alanı için iki seçenekli metnin (true/false) kullanıcı tarafından özelleştirilebilmesi sağlandı (örn. Yapıldı / Yapılmadı yerine Uygun / Uygun Değil).
+- [x] Sayfa detayındaki tablo başlıklarının ve durum hücre metinlerinin ayarlardan gelen etiketleri kullanması sağlandı.
+- [x] Kayıt formunda (Yeni Kayıt / Kayıt Düzenle) tüm alan etiketleri ve Durum switch başlığı/alt metinlerinin ayarlardaki sütun başlıkları ve durum metinleriyle senkronize edilmesi.
+- [x] PDF ve DOCX rapor çıktılarında sütun başlıkları ile Durum hücre metinlerinin ayarlardaki etiket ve metinlerle üretilmesi.
+- [x] Tablo sütunlarını global olarak gizleme: Ayarlar ekranındaki "Gizlenecek sütunlar" bölümünden seçilen sütunların tüm tablo görünümlerinde ve PDF/DOCX raporlarında otomatik olarak gizlenmesi; "Tablo görünümünü düzenle" ekranının da bu ayarlara uyması.
+
+# Sprint 11 - Bakım periyodu ve uygulama bazlı hatırlatmalar
+
+- [x] Uygulama ayarlarında global bakım periyodu (ör. 3 ay, 6 ay) ve hatırlatma eşiği (ör. 0, 7, 30, 60 gün önce uyar) alanlarının tanımlanması.
+- [x] Kayıt formuna ek alan eklemeden, mevcut bakım tarihleri üzerinden (bakım_tarihi + periyot) sonraki bakım tarihinin hesaplanması.
+- [x] Uygulama açıldığında, önümüzdeki belirli bir aralıkta (örneğin 30 gün) bakım zamanı gelen veya tarihi geçen kayıtların ana ekranda özet bir panelde listelenmesi.
+- [x] Hatırlatma kartından ilgili sayfaya hızlı geçiş yapılabilmesi (ilgili defter sayfası detayı açılır).
+
+# Sprint 12 - Test ve Android yayın hazırlığı
+
+- [ ] DatabaseService ve CRUD için birim testler
+- [ ] PDF oluşturma mantığı için birim test (mock veri)
+- [ ] Kritik widget testleri (form, liste)
+- [ ] Manuel test senaryoları (kayıt ekleme, düzenleme, silme, filtre, PDF/DOCX, paylaşım)
+- [ ] Android release build ve imzalama
+- [ ] Google Play Store liste metni ve ekran görüntüleri hazırlığı

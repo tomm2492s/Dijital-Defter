@@ -51,6 +51,9 @@ class ReportService {
   Future<Uint8List> buildPdf({
     required List<MaintenanceRecord> records,
     required Map<String, String> headerInfo,
+    Map<String, String>? columnLabels,
+    String? statusTrueLabel,
+    String? statusFalseLabel,
     bool landscape = true,
   }) async {
     final (fontRegular, fontBold) = await _loadPdfFonts();
@@ -58,36 +61,76 @@ class ReportService {
     final dateFormat = DateFormat('dd.MM.yyyy');
     final pageFormat = landscape ? PdfPageFormat.a4.landscape : PdfPageFormat.a4;
 
+    final labels = columnLabels ?? SettingsService.defaultColumnLabels;
+    final statusTrue = statusTrueLabel ?? SettingsService.defaultStatusTrueLabel;
+    final statusFalse = statusFalseLabel ?? SettingsService.defaultStatusFalseLabel;
+
+    final hiddenIds = await _settings.getHiddenColumnIds();
+    final allColumnIds = <String>[
+      'sira',
+      'inventory_no',
+      'elevator_no',
+      'material_name',
+      'unit_location',
+      'maintenance_date',
+      'action_done',
+      'technician',
+      'status',
+    ];
+    final visibleColumnIds = allColumnIds.where((id) => !hiddenIds.contains(id)).toList();
+
+    String valueForColumn(String id, MaintenanceRecord r, int index) {
+      switch (id) {
+        case 'sira':
+          return '$index';
+        case 'inventory_no':
+          return r.inventoryNo ?? '-';
+        case 'elevator_no':
+          return r.elevatorNo;
+        case 'material_name':
+          return r.materialName;
+        case 'unit_location':
+          return r.unitLocation;
+        case 'maintenance_date':
+          return dateFormat.format(r.maintenanceDate);
+        case 'action_done':
+          return r.actionDone;
+        case 'technician':
+          return r.technician;
+        case 'status':
+          return r.status ? statusTrue : statusFalse;
+        default:
+          return '';
+      }
+    }
+
     final tableRows = <pw.TableRow>[
       pw.TableRow(
         decoration: const pw.BoxDecoration(color: PdfColors.grey300),
-        children: [
-          _cell('Sıra', bold: true, fontRegular: fontRegular, fontBold: fontBold),
-          _cell('Demirbaş No', bold: true, fontRegular: fontRegular, fontBold: fontBold),
-          _cell('Asansör No', bold: true, fontRegular: fontRegular, fontBold: fontBold),
-          _cell('Malzeme Adı', bold: true, fontRegular: fontRegular, fontBold: fontBold),
-          _cell('Bulunduğu Birim', bold: true, fontRegular: fontRegular, fontBold: fontBold),
-          _cell('Bakım Tarihi', bold: true, fontRegular: fontRegular, fontBold: fontBold),
-          _cell('Yapılan İşlem', bold: true, fontRegular: fontRegular, fontBold: fontBold),
-          _cell('Bakım Yapan', bold: true, fontRegular: fontRegular, fontBold: fontBold),
-          _cell('Durum', bold: true, fontRegular: fontRegular, fontBold: fontBold),
-        ],
+        children: visibleColumnIds
+            .map(
+              (id) => _cell(
+                labels[id] ?? SettingsService.defaultColumnLabels[id] ?? id,
+                bold: true,
+                fontRegular: fontRegular,
+                fontBold: fontBold,
+              ),
+            )
+            .toList(),
       ),
       ...records.asMap().entries.map((e) {
         final r = e.value;
         final index = e.key + 1;
         return pw.TableRow(
-          children: [
-            _cell('$index', fontRegular: fontRegular, fontBold: fontBold),
-            _cell(r.inventoryNo ?? '-', fontRegular: fontRegular, fontBold: fontBold),
-            _cell(r.elevatorNo, fontRegular: fontRegular, fontBold: fontBold),
-            _cell(r.materialName, fontRegular: fontRegular, fontBold: fontBold),
-            _cell(r.unitLocation, fontRegular: fontRegular, fontBold: fontBold),
-            _cell(dateFormat.format(r.maintenanceDate), fontRegular: fontRegular, fontBold: fontBold),
-            _cell(r.actionDone, fontRegular: fontRegular, fontBold: fontBold),
-            _cell(r.technician, fontRegular: fontRegular, fontBold: fontBold),
-            _cell(r.status ? 'Yapıldı' : 'Yapılmadı', fontRegular: fontRegular, fontBold: fontBold),
-          ],
+          children: visibleColumnIds
+              .map(
+                (id) => _cell(
+                  valueForColumn(id, r, index),
+                  fontRegular: fontRegular,
+                  fontBold: fontBold,
+                ),
+              )
+              .toList(),
         );
       }),
     ];
@@ -124,15 +167,19 @@ class ReportService {
           pw.Table(
             border: pw.TableBorder.all(color: PdfColors.grey),
             columnWidths: {
-              0: const pw.FlexColumnWidth(0.8),
-              1: const pw.FlexColumnWidth(1.2),
-              2: const pw.FlexColumnWidth(1.2),
-              3: const pw.FlexColumnWidth(1.5),
-              4: const pw.FlexColumnWidth(1.5),
-              5: const pw.FlexColumnWidth(1.2),
-              6: const pw.FlexColumnWidth(2.5),
-              7: const pw.FlexColumnWidth(1.2),
-              8: const pw.FlexColumnWidth(0.6),
+              for (var i = 0; i < visibleColumnIds.length; i++)
+                i: switch (visibleColumnIds[i]) {
+                  'sira' => const pw.FlexColumnWidth(0.8),
+                  'inventory_no' => const pw.FlexColumnWidth(1.2),
+                  'elevator_no' => const pw.FlexColumnWidth(1.2),
+                  'material_name' => const pw.FlexColumnWidth(1.5),
+                  'unit_location' => const pw.FlexColumnWidth(1.5),
+                  'maintenance_date' => const pw.FlexColumnWidth(1.2),
+                  'action_done' => const pw.FlexColumnWidth(2.5),
+                  'technician' => const pw.FlexColumnWidth(1.2),
+                  'status' => const pw.FlexColumnWidth(0.6),
+                  _ => const pw.FlexColumnWidth(1),
+                }
             },
             children: tableRows,
           ),
@@ -175,37 +222,63 @@ class ReportService {
   Future<Uint8List> buildDocx({
     required List<MaintenanceRecord> records,
     required Map<String, String> headerInfo,
+    Map<String, String>? columnLabels,
+    String? statusTrueLabel,
+    String? statusFalseLabel,
   }) async {
     final dateFormat = DateFormat('dd.MM.yyyy');
     final reportTitle = (headerInfo['report_title'] ?? '').trim().isEmpty
         ? SettingsService.defaultReportTitle
         : (headerInfo['report_title'] ?? SettingsService.defaultReportTitle).trim();
 
-    final headerRow = [
-      'Sıra',
-      'Demirbaş No',
-      'Asansör No',
-      'Malzeme Adı',
-      'Bulunduğu Birim',
-      'Bakım Tarihi',
-      'Yapılan İşlem',
-      'Bakım Yapan',
-      'Durum',
+    final labels = columnLabels ?? SettingsService.defaultColumnLabels;
+    final statusTrue = statusTrueLabel ?? SettingsService.defaultStatusTrueLabel;
+    final statusFalse = statusFalseLabel ?? SettingsService.defaultStatusFalseLabel;
+
+    final hiddenIds = await _settings.getHiddenColumnIds();
+    final allColumnIds = <String>[
+      'sira',
+      'inventory_no',
+      'elevator_no',
+      'material_name',
+      'unit_location',
+      'maintenance_date',
+      'action_done',
+      'technician',
+      'status',
     ];
+    final visibleColumnIds = allColumnIds.where((id) => !hiddenIds.contains(id)).toList();
+
+    final headerRow = visibleColumnIds
+        .map((id) => labels[id] ?? SettingsService.defaultColumnLabels[id] ?? id)
+        .toList();
     final dataRows = records.asMap().entries.map((e) {
       final r = e.value;
       final index = e.key + 1;
-      return [
-        '$index',
-        r.inventoryNo ?? '-',
-        r.elevatorNo,
-        r.materialName,
-        r.unitLocation,
-        dateFormat.format(r.maintenanceDate),
-        r.actionDone,
-        r.technician,
-        r.status ? 'Yapıldı' : 'Yapılmadı',
-      ];
+      return visibleColumnIds.map((id) {
+        switch (id) {
+          case 'sira':
+            return '$index';
+          case 'inventory_no':
+            return r.inventoryNo ?? '-';
+          case 'elevator_no':
+            return r.elevatorNo;
+          case 'material_name':
+            return r.materialName;
+          case 'unit_location':
+            return r.unitLocation;
+          case 'maintenance_date':
+            return dateFormat.format(r.maintenanceDate);
+          case 'action_done':
+            return r.actionDone;
+          case 'technician':
+            return r.technician;
+          case 'status':
+            return r.status ? statusTrue : statusFalse;
+          default:
+            return '';
+        }
+      }).toList();
     }).toList();
 
     final doc = docx()

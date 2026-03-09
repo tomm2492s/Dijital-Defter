@@ -1,6 +1,6 @@
 /// Bakım kaydı modeli.
-/// Alanlar: id, inventory_no, elevator_no, material_name, unit_location,
-/// maintenance_date, action_done, technician, status
+/// Alanlar: id, pageId, inventoryNo, elevatorNo, materialName, unitLocation,
+/// maintenanceDate, actionDone, technician, status, sortOrder
 class MaintenanceRecord {
   final int? id;
   final int? pageId; // Hangi sayfaya ait (defter sayfası)
@@ -12,6 +12,7 @@ class MaintenanceRecord {
   final String actionDone;
   final String technician;
   final bool status; // true = Yapıldı, false = Yapılmadı
+  final int sortOrder;
 
   const MaintenanceRecord({
     this.id,
@@ -24,6 +25,7 @@ class MaintenanceRecord {
     required this.actionDone,
     required this.technician,
     required this.status,
+    this.sortOrder = 0,
   });
 
   Map<String, Object?> toMap() {
@@ -38,6 +40,7 @@ class MaintenanceRecord {
       'action_done': actionDone,
       'technician': technician,
       'status': status ? 1 : 0,
+      'sort_order': sortOrder,
     };
   }
 
@@ -53,6 +56,7 @@ class MaintenanceRecord {
       actionDone: map['action_done'] as String,
       technician: map['technician'] as String,
       status: (map['status'] as int?) == 1,
+      sortOrder: (map['sort_order'] as int?) ?? 0,
     );
   }
 
@@ -67,6 +71,7 @@ class MaintenanceRecord {
     String? actionDone,
     String? technician,
     bool? status,
+    int? sortOrder,
   }) {
     return MaintenanceRecord(
       id: id ?? this.id,
@@ -79,6 +84,7 @@ class MaintenanceRecord {
       actionDone: actionDone ?? this.actionDone,
       technician: technician ?? this.technician,
       status: status ?? this.status,
+      sortOrder: sortOrder ?? this.sortOrder,
     );
   }
 }

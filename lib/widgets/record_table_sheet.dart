@@ -12,6 +12,11 @@ class RecordTableSheet extends StatelessWidget {
     required this.onTapRow,
     this.onDeleteRow,
     this.columns,
+    this.columnLabels,
+    this.statusTrueLabel,
+    this.statusFalseLabel,
+    this.onMoveUp,
+    this.onMoveDown,
   });
 
   final List<MaintenanceRecord> records;
@@ -19,6 +24,18 @@ class RecordTableSheet extends StatelessWidget {
   final ValueChanged<MaintenanceRecord>? onDeleteRow;
   /// Görünecek sütunlar (sıralı). Null ise [kDefaultColumnIds] ile çözülür.
   final List<TableColumnDef>? columns;
+  /// Sütun id -> başlık eşlemesi (ayarlarla özelleştirilebilir).
+  final Map<String, String>? columnLabels;
+  /// Durum sütunu için "true" metni (ayarlarla özelleştirilebilir).
+  final String? statusTrueLabel;
+  /// Durum sütunu için "false" metni (ayarlarla özelleştirilebilir).
+  final String? statusFalseLabel;
+
+  /// Satırı bir üst sıraya taşımak için callback (opsiyonel).
+  final ValueChanged<MaintenanceRecord>? onMoveUp;
+
+  /// Satırı bir alt sıraya taşımak için callback (opsiyonel).
+  final ValueChanged<MaintenanceRecord>? onMoveDown;
 
   List<TableColumnDef> get _cols =>
       columns ?? resolveColumns(kDefaultColumnIds);
@@ -42,7 +59,12 @@ class RecordTableSheet extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               child: Row(
                 children: [
-                  for (final c in cols) _headerCell(context, c.label, flex: c.flex),
+                  for (final c in cols)
+                    _headerCell(
+                      context,
+                      columnLabels != null ? (columnLabels![c.id] ?? c.label) : c.label,
+                      flex: c.flex,
+                    ),
                   const SizedBox(width: 32),
                 ],
               ),
@@ -77,7 +99,11 @@ class RecordTableSheet extends StatelessWidget {
                             for (final c in cols)
                               _cell(
                                 context,
-                                c.getValue(r, i),
+                                c.isStatus
+                                    ? (r.status
+                                        ? (statusTrueLabel ?? 'Yapıldı')
+                                        : (statusFalseLabel ?? 'Yapılmadı'))
+                                    : c.getValue(r, i),
                                 flex: c.flex,
                                 done: c.isStatus && r.status,
                               ),
@@ -189,6 +215,26 @@ class RecordTableSheet extends StatelessWidget {
                 onTapRow(record);
               },
             ),
+            if (onMoveUp != null || onMoveDown != null)
+              const Divider(height: 1),
+            if (onMoveUp != null)
+              ListTile(
+                leading: const Icon(Icons.keyboard_arrow_up),
+                title: const Text('Bir yukarı taşı'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  onMoveUp?.call(record);
+                },
+              ),
+            if (onMoveDown != null)
+              ListTile(
+                leading: const Icon(Icons.keyboard_arrow_down),
+                title: const Text('Bir aşağı taşı'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  onMoveDown?.call(record);
+                },
+              ),
             ListTile(
               leading: Icon(Icons.delete_outline, color: theme.colorScheme.error),
               title: Text('Sil', style: TextStyle(color: theme.colorScheme.error)),

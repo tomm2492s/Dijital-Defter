@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/table_columns.dart';
+import '../services/settings_service.dart';
 
 /// Kaydedilince yeni sütun id listesini döndüren callback.
 typedef PageViewOnSave = Future<void> Function(List<String> ids);
@@ -22,12 +23,15 @@ class PageViewEditScreen extends StatefulWidget {
 
 class _PageViewEditScreenState extends State<PageViewEditScreen> {
   late List<String> _columnIds;
+  Map<String, String>? _columnLabels;
+  Set<String> _hiddenGlobalIds = <String>{};
 
   @override
   void initState() {
     super.initState();
     _columnIds = List.from(widget.initialColumnIds);
     _ensureAtLeastOne();
+    _loadInitialSettings();
   }
 
   void _ensureAtLeastOne() {
@@ -36,8 +40,37 @@ class _PageViewEditScreenState extends State<PageViewEditScreen> {
     }
   }
 
-  List<String> get _hiddenIds =>
-      kAllTableColumns.map((c) => c.id).where((id) => !_columnIds.contains(id)).toList();
+  Future<void> _loadInitialSettings() async {
+    final settings = SettingsService.instance;
+    final labels = await settings.getColumnLabels();
+    final hiddenGlobal = await settings.getHiddenColumnIds();
+    if (!mounted) return;
+    setState(() {
+      _columnLabels = labels;
+      _hiddenGlobalIds = hiddenGlobal.toSet();
+      // Global olarak gizlenen sütunları bu sayfanın görünüm listesinden de çıkar.
+      _columnIds.removeWhere(_hiddenGlobalIds.contains);
+      _ensureAtLeastOne();
+    });
+  }
+
+  List<String> get _availableToAddIds => kAllTableColumns
+      .map((c) => c.id)
+      // Zaten görünenleri çıkar
+      .where((id) => !_columnIds.contains(id))
+      // Global olarak gizlenenleri hiç gösterme
+      .where((id) => !_hiddenGlobalIds.contains(id))
+      .toList();
+
+  String _labelFor(String id) {
+    final def = getColumnDef(id);
+    final base = def?.label ?? id;
+    final labels = _columnLabels;
+    if (labels == null) return base;
+    final override = labels[id];
+    if (override == null || override.trim().isEmpty) return base;
+    return override.trim();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,8 +102,7 @@ class _PageViewEditScreenState extends State<PageViewEditScreen> {
             },
             itemBuilder: (context, index) {
               final id = _columnIds[index];
-              final def = getColumnDef(id);
-              final label = def?.label ?? id;
+              final label = _labelFor(id);
               return ListTile(
                 key: ValueKey(id),
                 leading: const Icon(Icons.drag_handle),
@@ -97,9 +129,8 @@ class _PageViewEditScreenState extends State<PageViewEditScreen> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _hiddenIds.map((id) {
-              final def = getColumnDef(id);
-              final label = def?.label ?? id;
+            children: _availableToAddIds.map((id) {
+              final label = _labelFor(id);
               return InputChip(
                 label: Text(label),
                 onPressed: () {
@@ -108,7 +139,7 @@ class _PageViewEditScreenState extends State<PageViewEditScreen> {
               );
             }).toList(),
           ),
-          if (_hiddenIds.isEmpty)
+          if (_availableToAddIds.isEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(

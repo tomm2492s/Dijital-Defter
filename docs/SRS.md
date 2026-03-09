@@ -48,6 +48,8 @@ Dijital Defter bağımsız bir mobil uygulamadır. Bulut sunucusuna bağımlı k
 - Görseldeki tablo yapısına uygun PDF/DOCX rapor üretimi; kullanıcı tanımlı rapor başlığı
 - Durum bilgisinin "Yapıldı" / "Yapılmadı" olarak metinle gösterilmesi (PDF’de Türkçe karakter uyumu)
 - PDF/DOCX için hem görüntüleme hem kaydetme/paylaşma seçenekleri; PDF önizlemede sayfa ortada/sığacak şekilde, beyaz arka plan, zoom/pan
+- Gelecek sürümler için: Uygulama ayarlarında tanımlanan global bakım periyodu üzerinden (örn. 3 ay, 6 ay) bakım tarihlerini takip ederek sonraki bakım tarihi yaklaştığında veya geçtiğinde kullanıcıyı uygulama içi listeli uyarılarla bilgilendirme (kayıt formuna ek alan eklemeden).
+- Global sütun gizleme: Ayarlar ekranındaki "Gizlenecek sütunlar" bölümünde işaretlenen sütunlar tüm tablo görünümlerinde ve PDF/DOCX raporlarında gizlenir; sayfa bazlı tablo görünümü bu global gizleme tercihine uyar.
 
 ### 2.3. Kullanıcı Özellikleri
 

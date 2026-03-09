@@ -33,8 +33,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late TextEditingController _departmentController;
   late TextEditingController _responsibleController;
   late TextEditingController _periodController;
+  late TextEditingController _labelInventoryController;
+  late TextEditingController _labelElevatorController;
+  late TextEditingController _labelMaterialController;
+  late TextEditingController _labelUnitLocationController;
+  late TextEditingController _labelDateController;
+  late TextEditingController _labelActionController;
+  late TextEditingController _labelTechnicianController;
+  late TextEditingController _labelStatusController;
+  late TextEditingController _statusTrueLabelController;
+  late TextEditingController _statusFalseLabelController;
 
   bool _isLoading = true;
+  int _maintenancePeriodMonths = SettingsService.defaultMaintenancePeriodMonths;
+  int _maintenanceReminderDays = SettingsService.defaultMaintenanceReminderDays;
+  Set<String> _hiddenColumnIds = <String>{};
 
   @override
   void initState() {
@@ -44,6 +57,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _departmentController = TextEditingController();
     _responsibleController = TextEditingController();
     _periodController = TextEditingController();
+    _labelInventoryController = TextEditingController();
+    _labelElevatorController = TextEditingController();
+    _labelMaterialController = TextEditingController();
+    _labelUnitLocationController = TextEditingController();
+    _labelDateController = TextEditingController();
+    _labelActionController = TextEditingController();
+    _labelTechnicianController = TextEditingController();
+    _labelStatusController = TextEditingController();
+    _statusTrueLabelController = TextEditingController();
+    _statusFalseLabelController = TextEditingController();
     _loadSettings();
   }
 
@@ -55,6 +78,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _responsibleController.text = data['responsible_person'] ?? '';
     _periodController.text = data['period'] ?? '';
     _themeMode = await _settings.getThemeMode();
+    final columnLabels = await _settings.getColumnLabels();
+    _labelInventoryController.text =
+        columnLabels['inventory_no'] ?? SettingsService.defaultColumnLabels['inventory_no']!;
+    _labelElevatorController.text =
+        columnLabels['elevator_no'] ?? SettingsService.defaultColumnLabels['elevator_no']!;
+    _labelMaterialController.text =
+        columnLabels['material_name'] ?? SettingsService.defaultColumnLabels['material_name']!;
+    _labelUnitLocationController.text =
+        columnLabels['unit_location'] ?? SettingsService.defaultColumnLabels['unit_location']!;
+    _labelDateController.text =
+        columnLabels['maintenance_date'] ?? SettingsService.defaultColumnLabels['maintenance_date']!;
+    _labelActionController.text =
+        columnLabels['action_done'] ?? SettingsService.defaultColumnLabels['action_done']!;
+    _labelTechnicianController.text =
+        columnLabels['technician'] ?? SettingsService.defaultColumnLabels['technician']!;
+    _labelStatusController.text =
+        columnLabels['status'] ?? SettingsService.defaultColumnLabels['status']!;
+    _statusTrueLabelController.text = await _settings.getStatusTrueLabel();
+    _statusFalseLabelController.text = await _settings.getStatusFalseLabel();
+    _maintenancePeriodMonths = await _settings.getMaintenancePeriodMonths();
+    _maintenanceReminderDays = await _settings.getMaintenanceReminderDays();
+    _hiddenColumnIds = (await _settings.getHiddenColumnIds()).toSet();
     if (mounted) setState(() => _isLoading = false);
   }
 
@@ -71,6 +116,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _departmentController.dispose();
     _responsibleController.dispose();
     _periodController.dispose();
+     _labelInventoryController.dispose();
+    _labelElevatorController.dispose();
+    _labelMaterialController.dispose();
+    _labelUnitLocationController.dispose();
+    _labelDateController.dispose();
+    _labelActionController.dispose();
+    _labelTechnicianController.dispose();
+    _labelStatusController.dispose();
+    _statusTrueLabelController.dispose();
+    _statusFalseLabelController.dispose();
     super.dispose();
   }
 
@@ -85,6 +140,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
         responsiblePerson: _responsibleController.text.trim(),
         period: _periodController.text.trim(),
       );
+      await _settings.saveColumnLabels({
+        'inventory_no': _labelInventoryController.text,
+        'elevator_no': _labelElevatorController.text,
+        'material_name': _labelMaterialController.text,
+        'unit_location': _labelUnitLocationController.text,
+        'maintenance_date': _labelDateController.text,
+        'action_done': _labelActionController.text,
+        'technician': _labelTechnicianController.text,
+        'status': _labelStatusController.text,
+      });
+      await _settings.saveStatusLabels(
+        trueLabel: _statusTrueLabelController.text,
+        falseLabel: _statusFalseLabelController.text,
+      );
+      await _settings.saveMaintenanceReminderSettings(
+        periodMonths: _maintenancePeriodMonths,
+        reminderDays: _maintenanceReminderDays,
+      );
+      await _settings.saveHiddenColumnIds(_hiddenColumnIds.toList());
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Ayarlar kaydedildi.')),
@@ -256,6 +330,215 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       prefixIcon: Icon(Icons.date_range),
                     ),
                     maxLength: 100,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Bakım hatırlatma ayarları
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Bakım periyodu ve hatırlatma',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 12),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          DropdownButtonFormField<int>(
+                            initialValue: _maintenancePeriodMonths,
+                            decoration: const InputDecoration(
+                              labelText: 'Global bakım periyodu',
+                              helperText: 'Tüm kayıtlar için kullanılacak bakım aralığı.',
+                            ),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 3,
+                                child: Text('3 ayda bir'),
+                              ),
+                              DropdownMenuItem(
+                                value: 6,
+                                child: Text('6 ayda bir'),
+                              ),
+                              DropdownMenuItem(
+                                value: 12,
+                                child: Text('12 ayda bir'),
+                              ),
+                            ],
+                            onChanged: (v) {
+                              if (v == null) return;
+                              setState(() => _maintenancePeriodMonths = v);
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          DropdownButtonFormField<int>(
+                            initialValue: _maintenanceReminderDays,
+                            decoration: const InputDecoration(
+                              labelText: 'Hatırlatma eşiği (gün önce)',
+                              helperText: 'Sonraki bakım tarihinden kaç gün önce listede görünsün?',
+                            ),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 0,
+                                child: Text('Sadece günü geldiğinde'),
+                              ),
+                              DropdownMenuItem(
+                                value: 7,
+                                child: Text('7 gün önce'),
+                              ),
+                              DropdownMenuItem(
+                                value: 30,
+                                child: Text('30 gün önce'),
+                              ),
+                              DropdownMenuItem(
+                                value: 60,
+                                child: Text('60 gün önce'),
+                              ),
+                            ],
+                            onChanged: (v) {
+                              if (v == null) return;
+                              setState(() => _maintenanceReminderDays = v);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Tablo sütun başlıkları ve durum metinleri
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Tablo başlıkları ve durum metinleri',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 12),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        children: [
+                          TextFormField(
+                            controller: _labelInventoryController,
+                            decoration: const InputDecoration(
+                              labelText: 'Demirbaş No sütun başlığı',
+                            ),
+                            maxLength: 100,
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _labelElevatorController,
+                            decoration: const InputDecoration(
+                              labelText: 'Asansör No sütun başlığı',
+                            ),
+                            maxLength: 100,
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _labelMaterialController,
+                            decoration: const InputDecoration(
+                              labelText: 'Malzeme Adı sütun başlığı',
+                            ),
+                            maxLength: 100,
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _labelUnitLocationController,
+                            decoration: const InputDecoration(
+                              labelText: 'Bulunduğu Birim sütun başlığı',
+                            ),
+                            maxLength: 100,
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _labelDateController,
+                            decoration: const InputDecoration(
+                              labelText: 'Tarih sütun başlığı',
+                            ),
+                            maxLength: 100,
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _labelActionController,
+                            decoration: const InputDecoration(
+                              labelText: 'Yapılan İşlem sütun başlığı',
+                            ),
+                            maxLength: 100,
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _labelTechnicianController,
+                            decoration: const InputDecoration(
+                              labelText: 'Bakım Yapan sütun başlığı',
+                            ),
+                            maxLength: 100,
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _labelStatusController,
+                            decoration: const InputDecoration(
+                              labelText: 'Durum sütun başlığı',
+                            ),
+                            maxLength: 100,
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _statusTrueLabelController,
+                            decoration: const InputDecoration(
+                              labelText: 'Durum = true metni',
+                              hintText: 'Örn: Yapıldı',
+                            ),
+                            maxLength: 50,
+                          ),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _statusFalseLabelController,
+                            decoration: const InputDecoration(
+                              labelText: 'Durum = false metni',
+                              hintText: 'Örn: Yapılmadı',
+                            ),
+                            maxLength: 50,
+                          ),
+                          const SizedBox(height: 16),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Gizlenecek sütunlar',
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          ...SettingsService.defaultColumnLabels.entries.map(
+                            (entry) {
+                              final id = entry.key;
+                              // "Sıra" ve "Durum" sütunlarını gizlemeye izin vermeyelim (kritik bilgiler).
+                              final canHide = id != 'sira' && id != 'status';
+                              final hidden = _hiddenColumnIds.contains(id);
+                              return CheckboxListTile(
+                                title: Text('${entry.value} sütununu gizle'),
+                                value: hidden,
+                                onChanged: !canHide
+                                    ? null
+                                    : (v) {
+                                        setState(() {
+                                          if (v == true) {
+                                            _hiddenColumnIds.add(id);
+                                          } else {
+                                            _hiddenColumnIds.remove(id);
+                                          }
+                                        });
+                                      },
+                                dense: true,
+                                controlAffinity: ListTileControlAffinity.leading,
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 24),
 
@@ -522,12 +805,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                   ),
                   _WhatsNewItem(
-                    version: 'v1.0.0',
+                    version: 'v1.0.1',
                     date: 'Son güncellemeler',
                     items: [
                       'Hata loglama: Hatalar cihazda saklanır; Ayarlar > Hata raporunu paylaş ile WhatsApp/e-posta gönderilebilir.',
                       'PDF önizleme: Önizleme alanında beyaz arka plan.',
                       'Global hata yakalama: Yakalanmamış hatalar da kaydedilir.',
+                      'Takvim yerelleştirme: DatePicker ve tarih bileşenleri flutter_localizations ile Türkçe gösterilir.',
+                      'Tablo başlıkları: Demirbaş No, Asansör No, Malzeme Adı, Bulunduğu Birim, Tarih, Yapılan İşlem, Bakım Yapan ve Durum sütun başlıkları Ayarlar ekranından özelleştirilebilir.',
+                      'Durum metinleri: Durum alanı için true/false metinleri (örn. Yapıldı / Yapılmadı) kullanıcı tarafından değiştirilebilir ve tablo, form ve PDF/DOCX raporlarda aynı şekilde kullanılır.',
+                      'Bakım periyodu: Global bakım periyodu (3, 6, 12 ay) ve hatırlatma eşiği (0, 7, 30, 60 gün önce) Ayarlar ekranından tanımlanabilir.',
+                      'Ana ekranda "Yaklaşan / geciken bakımlar" kartı ile yaklaşan veya geciken bakımlar listelenir ve ilgili defter sayfasına hızlı geçiş yapılabilir.',
+                      'Satır sıralama: Sayfa detayında kayıtlar "Bir yukarı taşı / Bir aşağı taşı" seçenekleri ile yeniden sıralanabilir ve bu sıralama PDF/DOCX rapor çıktısına da yansır.',
+                      'Sütun gizleme: Ayarlar ekranındaki "Gizlenecek sütunlar" bölümünden seçilen sütunlar tüm tablo görünümlerinden ve PDF/DOCX raporlarından global olarak gizlenir; "Tablo görünümünü düzenle" ekranı da bu ayarlara uyar.',
                     ],
                   ),
                 ],

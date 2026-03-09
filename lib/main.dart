@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'theme/app_theme.dart';
 import 'screens/dashboard_screen.dart';
 import 'services/error_log_service.dart';
 import 'services/settings_service.dart';
+import 'services/notification_service.dart';
 
 void main() {
   runZonedGuarded(
@@ -18,6 +20,7 @@ void main() {
           context: 'FlutterError',
         );
       };
+      NotificationService.instance.init();
       runApp(const DijitalDefterApp());
     },
     (error, stackTrace) {
@@ -52,6 +55,15 @@ class _DijitalDefterAppState extends State<DijitalDefterApp> {
     return MaterialApp(
       title: 'Dijital Defter',
       debugShowCheckedModeBanner: false,
+      locale: const Locale('tr', 'TR'),
+      supportedLocales: const [
+        Locale('tr', 'TR'),
+      ],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: _themeMode,

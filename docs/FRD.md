@@ -48,6 +48,11 @@ Uygulama "Hızlı Form" yapısını benimser; teknik personel sahada hızlı ver
 - **[FR-02] Kayıt güncelleme:** Listeden kayda dokunularak düzenleme
 - **[FR-03] Kayıt silme:** Sola kaydırma veya uzun basarak silme
 
+### 2.1.1. Tablo Görünümü ve Sütun Yönetimi
+
+- **[FR-03a] Sayfa bazlı tablo görünümü:** Kullanıcı, her defter sayfası için hangi sütunların görüneceğini ve sırasını "Tablo görünümünü düzenle" ekranından belirleyebilmelidir.
+- **[FR-03b] Global sütun gizleme:** Ayarlar ekranındaki "Tablo başlıkları ve durum metinleri" kartında yer alan "Gizlenecek sütunlar" bölümünden seçilen sütunlar, tüm sayfalardaki tablo görünümlerinde ve PDF/DOCX raporlarında otomatik olarak gizlenmelidir; bu sütunlar "Tablo görünümünü düzenle" ekranında da eklenebilir seçenekler arasında gösterilmemelidir.
+
 ### 2.2. PDF ve DOCX Üretim Modülü
 
 - **[FR-04]** Kullanıcının seçtiği tarih aralığındaki veriler orijinal tablo formatında PDF’e yerleştirilir

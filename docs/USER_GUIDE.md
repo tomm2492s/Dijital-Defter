@@ -29,6 +29,8 @@ Sayfa detayına girdiğinizde varsa geçmiş kayıtlar bir tablo olarak listelen
 5. Eğer işlem yapıldıysa **Durum** anahtarını açık/yeşil (Yapıldı) konumuna, yapılmadıysa kapalı/kırmızı (Yapılmadı) konumuna getirin.
 6. Tek kayıt giriyorsanız "Kaydet" deyin. Hemen peşine devam edecekseniz "Kaydet ve yeni kayıt ekle" butonunu kullanın. Form sıfırlanıp ardışık kayıt yapmanıza olanak tanıyacaktır.
 
+> Not (gelecek sürümler): Uygulama; Ayarlar ekranında tanımlanacak global bir bakım periyodu (örneğin 3 ay veya 6 ay) üzerinden, girdiğiniz **Bakım Tarihi** bilgilerini takip ederek ileride bakım zamanı yaklaşan veya geciken kayıtları ana ekranda özet bir listeyle hatırlatacak şekilde genişletilebilir. Bu mantıkta kayıt formuna ekstra alan eklenmez; takip tamamen uygulama genelindeki tarih ve periyot ayarları üzerinden yapılır.
+
 ## 4. Rapor Oluşturma ve Görüntüleme
 
 Bir defter sayfasındayken tüm o sayfadaki satırları döküme almak için işlemi şu şekilde yaparsınız:
@@ -52,3 +54,18 @@ Ayarlar ekranında **Yedekleme** bölümünden veritabanını (.db) veya veriyi 
 2. **Hata raporunu paylaş** butonuna dokunun.
 3. Kayıtlı hata varsa, tüm hata bilgilerini içeren bir metin dosyası (.txt) oluşturulur ve paylaşım menüsü açılır; WhatsApp, e-posta vb. ile gönderebilirsiniz.
 4. Kayıtlı hata yoksa "Kayıtlı hata yok." mesajı görünür.
+
+## 6. Tablo Sütunlarını ve Durum Metinlerini Özelleştirme / Gizleme
+
+**Sütun başlıklarını ve durum metinlerini değiştirme:**
+
+- **Ayarlar** ekranında, **"Tablo başlıkları ve durum metinleri"** kartı içinde Demirbaş No, Asansör No, Malzeme Adı, Bulunduğu Birim, Tarih, Yapılan İşlem, Bakım Yapan ve Durum için istediğiniz sütun başlıklarını girebilirsiniz.
+- Aynı kartta, **Durum = true** ve **Durum = false** metinlerini (örneğin *Yapıldı / Yapılmadı* yerine *Uygun / Uygun Değil*) kendi kullanımınıza göre güncelleyebilirsiniz. Bu metinler kayıt formunda, tablo görünümünde ve PDF/DOCX raporlarda aynı şekilde kullanılır.
+
+**Sütunları global olarak gizleme:**
+
+- Aynı kartın altında yer alan **"Gizlenecek sütunlar"** bölümünde, ihtiyaç duymadığınız sütunları işaretleyerek **global olarak gizleyebilirsiniz**.
+- Burada gizlediğiniz sütunlar:
+  - Sayfa detaylarındaki tablo görünümünde gösterilmez.
+  - **"Tablo görünümünü düzenle"** ekranında eklenebilir sütunlar listesinde yer almaz.
+  - PDF ve DOCX rapor çıktılarında da aynı şekilde hiç görünmez.

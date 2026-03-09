@@ -75,6 +75,9 @@ class _ReportScreenState extends State<ReportScreen> {
     try {
       final headerInfo = await _loadHeaderInfo();
       final records = await _loadRecords();
+      final columnLabels = await _settings.getColumnLabels();
+      final statusTrue = await _settings.getStatusTrueLabel();
+      final statusFalse = await _settings.getStatusFalseLabel();
       if (records.isEmpty && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Seçilen tarih aralığında kayıt bulunamadı.')),
@@ -85,6 +88,9 @@ class _ReportScreenState extends State<ReportScreen> {
       final bytes = await _reportService.buildPdf(
         records: records,
         headerInfo: headerInfo,
+        columnLabels: columnLabels,
+        statusTrueLabel: statusTrue,
+        statusFalseLabel: statusFalse,
         landscape: _landscape,
       );
       if (!mounted) return;
@@ -165,6 +171,9 @@ class _ReportScreenState extends State<ReportScreen> {
     try {
       final headerInfo = await _loadHeaderInfo();
       final records = await _loadRecords();
+      final columnLabels = await _settings.getColumnLabels();
+      final statusTrue = await _settings.getStatusTrueLabel();
+      final statusFalse = await _settings.getStatusFalseLabel();
       if (records.isEmpty && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Seçilen tarih aralığında kayıt bulunamadı.')),
@@ -175,6 +184,9 @@ class _ReportScreenState extends State<ReportScreen> {
       final bytes = await _reportService.buildDocx(
         records: records,
         headerInfo: headerInfo,
+        columnLabels: columnLabels,
+        statusTrueLabel: statusTrue,
+        statusFalseLabel: statusFalse,
       );
       if (!mounted) return;
       setState(() => _isGenerating = false);

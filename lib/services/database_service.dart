@@ -15,7 +15,7 @@ class DatabaseService {
 
   static Database? _db;
   static const String _dbName = 'dijital_defter.db';
-  static const int _version = 4;
+  static const int _version = 5;
 
   Future<Database> get database async {
     if (_db != null) return _db!;
@@ -64,7 +64,8 @@ class DatabaseService {
         maintenance_date TEXT NOT NULL,
         action_done TEXT NOT NULL,
         technician TEXT NOT NULL,
-        status INTEGER NOT NULL
+        status INTEGER NOT NULL,
+        sort_order INTEGER NOT NULL DEFAULT 0
       )
     ''');
   }
@@ -101,6 +102,35 @@ class DatabaseService {
           column_ids TEXT NOT NULL
         )
       ''');
+    }
+    if (oldVersion < 5) {
+      try {
+        await db.execute('ALTER TABLE maintenance_records ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0');
+      } catch (_) {}
+      // Mevcut kayıtlar için sayfa bazında sıralama değeri ata.
+      final maps = await db.query(
+        'maintenance_records',
+        orderBy: 'page_id ASC, maintenance_date ASC, id ASC',
+      );
+      int? currentPageId;
+      var sort = 0;
+      for (final m in maps) {
+        final pageId = m['page_id'] as int?;
+        if (pageId != currentPageId) {
+          currentPageId = pageId;
+          sort = 0;
+        }
+        final id = m['id'] as int?;
+        if (id != null) {
+          await db.update(
+            'maintenance_records',
+            {'sort_order': sort},
+            where: 'id = ?',
+            whereArgs: [id],
+          );
+          sort++;
+        }
+      }
     }
   }
 
@@ -224,7 +254,7 @@ class DatabaseService {
       'maintenance_records',
       where: 'page_id = ?',
       whereArgs: [pageId],
-      orderBy: 'maintenance_date ASC, id ASC',
+      orderBy: 'sort_order ASC, id ASC',
     );
     return maps.map((m) => MaintenanceRecord.fromMap(m)).toList();
   }
@@ -233,7 +263,16 @@ class DatabaseService {
 
   Future<int> insert(MaintenanceRecord record) async {
     final db = await database;
-    return db.insert('maintenance_records', record.toMap());
+    final map = record.toMap();
+    if (record.pageId != null) {
+      final result = await db.rawQuery(
+        'SELECT COALESCE(MAX(sort_order), -1) + 1 as n FROM maintenance_records WHERE page_id = ?',
+        [record.pageId],
+      );
+      final next = (result.first['n'] as int?) ?? 0;
+      map['sort_order'] = next;
+    }
+    return db.insert('maintenance_records', map);
   }
 
   Future<List<MaintenanceRecord>> getAll({String? elevatorFilter, String? materialFilter}) async {
@@ -306,6 +345,25 @@ class DatabaseService {
       where: 'id = ?',
       whereArgs: [record.id],
     );
+  }
+
+  Future<void> swapRecordSortOrder(MaintenanceRecord a, MaintenanceRecord b) async {
+    if (a.id == null || b.id == null) return;
+    final db = await database;
+    await db.transaction((txn) async {
+      await txn.update(
+        'maintenance_records',
+        {'sort_order': b.sortOrder},
+        where: 'id = ?',
+        whereArgs: [a.id],
+      );
+      await txn.update(
+        'maintenance_records',
+        {'sort_order': a.sortOrder},
+        where: 'id = ?',
+        whereArgs: [b.id],
+      );
+    });
   }
 
   Future<int> delete(int id) async {

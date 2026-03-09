@@ -34,4 +34,17 @@ Format, [Keep a Changelog](https://keepachangelog.com/tr/) standartlarına dayan
 - runZonedGuarded kullanımında "Zone mismatch" hatası giderildi; ensureInitialized ve runApp aynı zone içinde çağrılıyor.
 
 ---
-*Not: Henüz yayına alınmış bitmiş bir v1.0.0 sürümü mevcut olmadığından her özellik [Unreleased] altındadır. İlk yayın ile birlikte bu yapı taşınacaktır.*
+*Not: Henüz yayına alınmış bitmiş bir v1.0.x sürümü mevcut olmadığından her özellik [Unreleased] altındadır. İlk yayın ile birlikte bu yapı taşınacaktır.*
+
+## [1.0.1] - 2026-03-09
+
+### Added
+- Global bakım periyodu (3, 6, 12 ay) ve hatırlatma eşiği (0, 7, 30, 60 gün önce) için Ayarlar ekranında yeni bölüm.
+- Dashboard ana ekranında "Yaklaşan / geciken bakımlar" kartı; yaklaşan veya geciken bakımların listelenmesi ve ilgili sayfaya hızlı geçiş.
+- Tablo sütun başlıkları ve Durum (true/false) metinlerinin Ayarlar ekranından özelleştirilebilmesi; bu etiketlerin tablo, form ve PDF/DOCX raporlarda tutarlı kullanılması.
+
+### Changed
+- Tablo görünümünü düzenle ekranında (`Tablo görünümünü düzenle`), sütun başlıkları artık Ayarlar'da tanımlanan özelleştirilmiş etiketleri gösteriyor.
+
+### Fixed
+- Dashboard üzerinde hatırlatma kartı eklenirken oluşan parantez/ternary kaynaklı derleme hataları giderildi.

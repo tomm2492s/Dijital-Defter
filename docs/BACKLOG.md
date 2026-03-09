@@ -19,3 +19,9 @@
 - **Gelişmiş Filtreleme ve Arama Ekranı:** "Şu ay ile bu ay arasındaki tüm *Yapılmadı* olan kayıtlar" gibi karmaşık sorgular yapabilen gelişmiş bir Dashboard özeti ve arama widget'ı.
 - **Çoklu Dil (Multi-language):** \`arb\` dosyası entegrasyonu ile uygulamanın aynı dilde English/Turkish seçenekleri sunması (Genel pazar hedeflenirse).
 - **Excel (.xlsx/csv) Export:** Tablonun doğrudan Excel'de çalışılabilir formata dönüştürülmesi (Mevcut DOCX'e alternatif).
+
+## 5. Bakım Periyodu ve Hatırlatmalar
+- **Uygulama bazlı bakım periyodu takibi:** Kayıt formuna ek alan eklemeden, sadece uygulama ayarlarına tanımlanmış bir bakım periyodu (ör. 3 ay, 6 ay) üzerinden mevcut bakım tarihlerini takip etmek.
+- **Sonraki bakım tarihi hesaplama (uygulama içi):** Kullanıcının girdiği bakım tarihine göre (örn. 01.03.2026 + 3 ay = 01.06.2026) sonraki bakım tarihinin hesaplanması ve yaklaştığında/gelip geçtiğinde ana ekranda uyarı bölümüyle gösterilmesi.
+- **Hatırlatma davranışı (basit seviye):** Uygulama açıldığında, belirli bir zaman aralığında (örn. önümüzdeki 30 gün) bakım zamanı gelen veya geciken asansörlerin bir liste halinde kullanıcıya gösterilmesi.
+- **Kullanıcı tarafından ayarlanabilir periyot:** Ayarlar ekranında global bakım periyodu ve hatırlatma eşiği (örn. "X gün önce uyar") seçeneklerinin tanımlanabilmesi; kayıtlara ekstra alan eklemeden sadece uygulama genelinde geçerli olacak şekilde uygulanması.

@@ -7,6 +7,7 @@ import '../services/error_log_service.dart';
 import '../services/report_service.dart';
 import '../services/settings_service.dart';
 import '../services/storage_service.dart';
+import '../services/notification_service.dart';
 
 /// Veri giriş ekranı: tüm alanlar, validasyon, ekleme/güncelleme.
 class RecordFormScreen extends StatefulWidget {
@@ -27,6 +28,18 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
   final _reportService = ReportService.instance;
   final _settings = SettingsService.instance;
   final _storage = StorageService.instance;
+
+  // Ayarlardan gelen sütun başlıkları (form için).
+  String _inventoryLabel = SettingsService.defaultColumnLabels['inventory_no']!;
+  String _elevatorLabel = SettingsService.defaultColumnLabels['elevator_no']!;
+  String _materialLabel = SettingsService.defaultColumnLabels['material_name']!;
+  String _unitLocationLabel = SettingsService.defaultColumnLabels['unit_location']!;
+  String _dateLabel = SettingsService.defaultColumnLabels['maintenance_date']!;
+  String _actionLabel = SettingsService.defaultColumnLabels['action_done']!;
+  String _technicianLabel = SettingsService.defaultColumnLabels['technician']!;
+  String _statusColumnLabel = SettingsService.defaultColumnLabels['status']!;
+  String _statusTrueLabel = SettingsService.defaultStatusTrueLabel;
+  String _statusFalseLabel = SettingsService.defaultStatusFalseLabel;
 
   late TextEditingController _inventoryNoController;
   late TextEditingController _elevatorNoController;
@@ -58,6 +71,34 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
     _technicianController = TextEditingController(text: r?.technician ?? '');
     _maintenanceDate = r?.maintenanceDate ?? DateTime.now();
     _status = r?.status ?? true;
+    _loadColumnAndStatusLabels();
+  }
+
+  Future<void> _loadColumnAndStatusLabels() async {
+    final labels = await _settings.getColumnLabels();
+    final trueLabel = await _settings.getStatusTrueLabel();
+    final falseLabel = await _settings.getStatusFalseLabel();
+    if (!mounted) return;
+    setState(() {
+      _inventoryLabel =
+          (labels['inventory_no']?.trim().isNotEmpty ?? false) ? labels['inventory_no']!.trim() : SettingsService.defaultColumnLabels['inventory_no']!;
+      _elevatorLabel =
+          (labels['elevator_no']?.trim().isNotEmpty ?? false) ? labels['elevator_no']!.trim() : SettingsService.defaultColumnLabels['elevator_no']!;
+      _materialLabel =
+          (labels['material_name']?.trim().isNotEmpty ?? false) ? labels['material_name']!.trim() : SettingsService.defaultColumnLabels['material_name']!;
+      _unitLocationLabel =
+          (labels['unit_location']?.trim().isNotEmpty ?? false) ? labels['unit_location']!.trim() : SettingsService.defaultColumnLabels['unit_location']!;
+      _dateLabel =
+          (labels['maintenance_date']?.trim().isNotEmpty ?? false) ? labels['maintenance_date']!.trim() : SettingsService.defaultColumnLabels['maintenance_date']!;
+      _actionLabel =
+          (labels['action_done']?.trim().isNotEmpty ?? false) ? labels['action_done']!.trim() : SettingsService.defaultColumnLabels['action_done']!;
+      _technicianLabel =
+          (labels['technician']?.trim().isNotEmpty ?? false) ? labels['technician']!.trim() : SettingsService.defaultColumnLabels['technician']!;
+      _statusColumnLabel =
+          (labels['status']?.trim().isNotEmpty ?? false) ? labels['status']!.trim() : SettingsService.defaultColumnLabels['status']!;
+      _statusTrueLabel = trueLabel;
+      _statusFalseLabel = falseLabel;
+    });
   }
 
   @override
@@ -117,9 +158,15 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
         if (!_formKey.currentState!.validate()) return;
         recordsToExport = [_getCurrentRecord()];
       }
+      final columnLabels = await _settings.getColumnLabels();
+      final statusTrue = await _settings.getStatusTrueLabel();
+      final statusFalse = await _settings.getStatusFalseLabel();
       final bytes = await _reportService.buildPdf(
         records: recordsToExport,
         headerInfo: headerInfo,
+        columnLabels: columnLabels,
+        statusTrueLabel: statusTrue,
+        statusFalseLabel: statusFalse,
         landscape: true,
       );
       if (!mounted) return;
@@ -161,9 +208,15 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
         if (!_formKey.currentState!.validate()) return;
         recordsToExport = [_getCurrentRecord()];
       }
+      final columnLabels = await _settings.getColumnLabels();
+      final statusTrue = await _settings.getStatusTrueLabel();
+      final statusFalse = await _settings.getStatusFalseLabel();
       final bytes = await _reportService.buildDocx(
         records: recordsToExport,
         headerInfo: headerInfo,
+        columnLabels: columnLabels,
+        statusTrueLabel: statusTrue,
+        statusFalseLabel: statusFalse,
       );
       if (!mounted) return;
       final name = recordsToExport.length > 1
@@ -205,14 +258,36 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
     _formKey.currentState?.reset();
   }
 
+  Future<void> _scheduleReminderForRecord(MaintenanceRecord record) async {
+    if (record.id == null) return;
+    final periodMonths = await _settings.getMaintenancePeriodMonths();
+    final reminderDays = await _settings.getMaintenanceReminderDays();
+    if (periodMonths <= 0) return;
+    final d = record.maintenanceDate;
+    final base = DateTime(d.year, d.month, d.day);
+    final nextDate = DateTime(base.year, base.month + periodMonths, base.day);
+    final scheduledAt = nextDate.subtract(Duration(days: reminderDays));
+    if (scheduledAt.isBefore(DateTime.now())) return;
+    final title = 'Bakım hatırlatması';
+    final body = '${record.elevatorNo} - ${record.materialName} için bakım zamanı yaklaşıyor.';
+    await NotificationService.instance.scheduleMaintenanceReminder(
+      id: record.id!,
+      scheduledAt: scheduledAt,
+      title: title,
+      body: body,
+    );
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
     final record = _getCurrentRecord();
+    int? savedId;
 
     try {
       if (_isEditing) {
         await _db.update(record);
+        savedId = record.id;
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kayıt güncellendi.')));
           Navigator.of(context).pop();
@@ -224,37 +299,9 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
           _savedCountInSession++;
           _savedRecordIdsInSession.add(id);
         });
+        savedId = id;
         final rowNum = _savedCountInSession;
-        final messenger = ScaffoldMessenger.of(context);
-        final addAnother = await showDialog<bool>(
-          context: context,
-          barrierDismissible: false,
-          builder: (ctx) => AlertDialog(
-            title: Text('$rowNum. satırdaki veri kaydedildi'),
-            content: const Text(
-              'Başka kayıt eklemek ister misiniz? Aynı ekranda kalıp yeni satır girebilirsiniz. İşiniz bitince PDF veya DOCX ile dışa aktarabilirsiniz.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Listeye dön'),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Başka kayıt ekle'),
-              ),
-            ],
-          ),
-        );
-        if (!mounted) return;
-        if (addAnother == true) {
-          _resetFormForNewRecord();
-          messenger.showSnackBar(
-            SnackBar(content: Text('$rowNum. satır kaydedildi. Yeni satır için form temizlendi.')),
-          );
-        } else {
-          Navigator.of(context).pop();
-        }
+        await _handleAfterInsert(rowNum);
       }
     } catch (e, stackTrace) {
       ErrorLogService.instance.logError(e, stackTrace, context: 'Form - kayıt kaydet/güncelle');
@@ -266,6 +313,50 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
           ),
         );
       }
+      return;
+    }
+
+    // Bildirim planlama hataları kaydı etkilemesin; ayrı try-catch içinde tutulur.
+    if (savedId != null) {
+      try {
+        await _scheduleReminderForRecord(record.copyWith(id: savedId));
+      } catch (e, stackTrace) {
+        ErrorLogService.instance.logError(e, stackTrace, context: 'Form - bakım hatırlatma bildirimi planlama');
+      }
+    }
+  }
+
+  Future<void> _handleAfterInsert(int rowNum) async {
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final addAnother = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text('$rowNum. satırdaki veri kaydedildi'),
+        content: const Text(
+          'Başka kayıt eklemek ister misiniz? Aynı ekranda kalıp yeni satır girebilirsiniz. İşiniz bitince PDF veya DOCX ile dışa aktarabilirsiniz.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Listeye dön'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Başka kayıt ekle'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    if (addAnother == true) {
+      _resetFormForNewRecord();
+      messenger.showSnackBar(
+        SnackBar(content: Text('$rowNum. satır kaydedildi. Yeni satır için form temizlendi.')),
+      );
+    } else {
+      Navigator.of(context).pop();
     }
   }
 
@@ -300,13 +391,13 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
             if (!_isEditing && _savedCountInSession > 0) const SizedBox(height: 12),
             TextFormField(
               controller: _inventoryNoController,
-              decoration: const InputDecoration(labelText: 'Demirbaş No'),
+              decoration: InputDecoration(labelText: _inventoryLabel),
               maxLength: 100,
             ),
             const SizedBox(height: 8),
             TextFormField(
               controller: _elevatorNoController,
-              decoration: const InputDecoration(labelText: 'Asansör No *'),
+              decoration: InputDecoration(labelText: '$_elevatorLabel *'),
               maxLength: 50,
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Asansör No zorunludur.';
@@ -316,7 +407,7 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _materialNameController,
-              decoration: const InputDecoration(labelText: 'Malzeme Adı *'),
+              decoration: InputDecoration(labelText: '$_materialLabel *'),
               maxLength: 200,
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Malzeme Adı zorunludur.';
@@ -326,7 +417,7 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _unitLocationController,
-              decoration: const InputDecoration(labelText: 'Bulunduğu Birim *'),
+              decoration: InputDecoration(labelText: '$_unitLocationLabel *'),
               maxLength: 200,
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Bulunduğu Birim zorunludur.';
@@ -335,7 +426,7 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
             ),
             const SizedBox(height: 8),
             ListTile(
-              title: const Text('Bakım Tarihi *'),
+              title: Text('$_dateLabel *'),
               subtitle: Text(DateFormat('dd.MM.yyyy').format(_maintenanceDate)),
               trailing: const Icon(Icons.calendar_today),
               onTap: _pickDate,
@@ -343,7 +434,7 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _actionDoneController,
-              decoration: const InputDecoration(labelText: 'Yapılan İşlem *'),
+              decoration: InputDecoration(labelText: '$_actionLabel *'),
               maxLines: 3,
               maxLength: 500,
               validator: (v) {
@@ -354,7 +445,7 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _technicianController,
-              decoration: const InputDecoration(labelText: 'Bakım Yapan *'),
+              decoration: InputDecoration(labelText: '$_technicianLabel *'),
               maxLength: 200,
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Bakım Yapan zorunludur.';
@@ -363,8 +454,8 @@ class _RecordFormScreenState extends State<RecordFormScreen> {
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: const Text('Durum'),
-              subtitle: Text(_status ? 'Yapıldı' : 'Yapılmadı'),
+              title: Text(_statusColumnLabel),
+              subtitle: Text(_status ? _statusTrueLabel : _statusFalseLabel),
               value: _status,
               onChanged: (v) => setState(() => _status = v),
               activeThumbColor: Colors.green,
